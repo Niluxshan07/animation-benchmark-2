@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'AnimBench - Animation Performance Benchmark',
+  title: 'AnimBench - Animation Performance Benchmark - Next.js',
   description: 'Controlled experimental study comparing animation rendering performance',
 }
 

@@ -102,7 +102,7 @@ export default function AnimationBenchmark() {
       <section className="hero" id="home" ref={heroRef}>
         <div className={`hero-left${visible ? ' visible' : ''}`}>
           <p className="badge">🔬 Research Project — SUSL</p>
-          <h1>Animation <span className="highlight">Performance</span> Benchmark</h1>
+          <h1>Animation <span className="highlight">Performance</span> Benchmark - Next.js</h1>
           <p className="hero-sub">A controlled experimental study comparing animation rendering performance across React, Vue.js, Svelte and Angular frameworks.</p>
           <div className="hero-buttons">
             <button className="btn-primary" onClick={() => setModal(researchInfo)}>View Research</button>

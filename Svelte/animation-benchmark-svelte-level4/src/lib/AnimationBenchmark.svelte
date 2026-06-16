@@ -120,7 +120,7 @@
   <section class="hero">
     <div class="hero-left">
       <p class="badge">🔬 Research Project — SUSL</p>
-      <h1>Animation <span class="highlight">Performance</span> Benchmark</h1>
+      <h1>Animation <span class="highlight">Performance</span> Benchmark - Svelte.js</h1>
       <p class="level-tag">⚙ Level 4: Spring physics · Bounce effects · Elastic animations</p>
       <p class="hero-sub">
         A controlled experimental study comparing animation rendering
