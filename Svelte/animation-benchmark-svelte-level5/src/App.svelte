@@ -1,4 +1,677 @@
 <script>
-  import AnimationBenchmark from './lib/AnimationBenchmark.svelte'
+  import { onMount, onDestroy } from 'svelte';
+  import gsap from 'gsap';
+
+  let modal = null;
+  let stat1 = 0, stat2 = 0, stat3 = 0, countDone = false;
+  let rafId, gsapCtx;
+  let ring1El, ring2El, ring3El, logoEl;
+
+  const levelBadgeText = `Level 5 — Cinematic`;
+  const levelBadgeBg = `linear-gradient(135deg,#7c3aed,#4f46e5)`;
+  const levelTagText = `🎬 Level 5: Cinematic · Drop shadows · Blur · Smooth GPU transitions · Marquee`;
+  const levelTagBg = `#fdf4ff`;
+  const levelTagColor = `#7c3aed`;
+  const levelTagBorder = `#e9d5ff`;
+
+  const researchInfo = {
+    title: 'About This Research',
+    content: [
+      'This study experimentally compares animation rendering performance across React, Vue.js, Svelte, and Angular frameworks.',
+      'A single animated UI element is used under identical controlled conditions to isolate framework-level rendering differences.',
+      'Performance metrics are collected using Chrome DevTools including FPS, dropped frames, paint time, compositing cost, CPU usage, and bundle size.',
+      'The study aims to provide empirical evidence to guide developers in selecting frameworks for animation-heavy landing pages.',
+    ]
+  };
+  const learnMore = {
+    title: 'Research Methodology',
+    content: [
+      'Independent Variable: JavaScript Framework (React, Vue.js, Svelte, Angular)',
+      'Dependent Variables: Average FPS, Dropped Frames, Paint Time, Compositing Time, CPU Usage, Bundle Size',
+      'Controlled Variables: Same CSS animation, same browser (Chrome), same hardware, same animation duration and easing',
+      'Data Collection: Chrome DevTools Performance Panel — minimum 30 recordings per framework',
+      'Analysis: Statistical comparison using averages, standard deviation and cross-framework performance ranking',
+    ]
+  };
+
+  function openResearchModal() { modal = researchInfo; }
+  function openLearnMoreModal() { modal = learnMore; }
+  function closeModal() { modal = null; }
+  function handleKey(e) { if (e.key === 'Escape') closeModal(); }
+
+  function onMagneticMove(e) {
+    const btn = e.currentTarget;
+    const r = btn.getBoundingClientRect();
+    gsap.to(btn, { x: (e.clientX-r.left-r.width/2)*0.3, y: (e.clientY-r.top-r.height/2)*0.3, duration: 0.3, ease: 'power2.out' });
+  }
+  function onMagneticLeave(e) {
+    gsap.to(e.currentTarget, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1,0.5)' });
+  }
+  function onLogoEnter() {
+    gsap.to(logoEl, { scale: 1.32, rotate: 25, duration: 0.4, ease: 'power2.out' });
+  }
+  function onLogoLeave() {
+    gsap.to(logoEl, { scale: 1, rotate: 0, duration: 0.5, ease: 'elastic.out(1,0.5)' });
+  }
+
+  onMount(() => {
+    // Count-up
+    setTimeout(() => {
+      const targets = [4, 7, 30]; const duration = 1400;
+      const start = performance.now();
+      const tick = (now) => {
+        const p = Math.min((now-start)/duration, 1);
+        const ease = 1 - Math.pow(1-p, 4);
+        stat1 = Math.round(ease*targets[0]);
+        stat2 = Math.round(ease*targets[1]);
+        stat3 = Math.round(ease*targets[2]);
+        if (p < 1) rafId = requestAnimationFrame(tick); else countDone = true;
+      };
+      rafId = requestAnimationFrame(tick);
+    }, 2350);
+
+    // GSAP rings + logo
+    gsapCtx = gsap.context(() => {
+      gsap.to(ring1El, { rotation: 360,  duration: 20, repeat: -1, ease: 'none' });
+      gsap.to(ring2El, { rotation: -360, duration: 16, repeat: -1, ease: 'none' });
+      gsap.to(ring3El, { rotation: 360,  duration: 12, repeat: -1, ease: 'none' });
+      gsap.to(logoEl, { scale: 1.18, duration: 1.3, repeat: -1, yoyo: true, ease: 'elastic.out(1,0.45)', delay: 1 });
+      gsap.to(logoEl, { boxShadow: '0 0 55px rgba(124,58,237,0.85)', duration: 1.3, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1 });
+    });
+  });
+
+  onDestroy(() => {
+    if (rafId) cancelAnimationFrame(rafId);
+    if (gsapCtx) gsapCtx.revert();
+  });
 </script>
-<AnimationBenchmark />
+
+<svelte:window on:keydown={handleKey} />
+
+<div class="page">
+  {#if modal}
+  <div class="modal-overlay" on:click={closeModal} role="presentation">
+    <div class="modal-box" role="dialog" aria-modal="true" on:click|stopPropagation>
+      <div class="modal-header">
+        <h2>{modal.title}</h2>
+        <button class="modal-close" on:click={closeModal}>&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        {#each modal.content as item}
+        <div class="modal-item"><span class="modal-dot">&#9656;</span><p>{item}</p></div>
+        {/each}
+      </div>
+    </div>
+  </div>
+  {/if}
+
+  <nav class="navbar">
+    <div class="brand"><span class="brand-dot"></span>AnimBench</div>
+    <div class="level-badge" style="background:{levelBadgeBg};color:white;padding:6px 18px;border-radius:20px;font-size:0.85rem;font-weight:700;box-shadow:0 2px 12px rgba(124,58,237,0.4);">{levelBadgeText}</div>
+  </nav>
+
+  <section class="hero">
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="hero-left">
+      <p class="badge">🔬 Research Project — SUSL</p>
+      <!-- Marquee heading -->
+      <h1 class="heading-marquee-wrapper" aria-label="Animation Performance Benchmark">
+        <div class="heading-marquee-track">
+          <span class="heading-marquee-copy">
+            Animation&nbsp;<span class="highlight gradient-shimmer">Performance</span>&nbsp;Benchmark
+            <span class="heading-marquee-sep">✦</span>
+          </span>
+          <span class="heading-marquee-copy">
+            Animation&nbsp;<span class="highlight gradient-shimmer">Performance</span>&nbsp;Benchmark
+            <span class="heading-marquee-sep">✦</span>
+          </span>
+        </div>
+      </h1>
+      <p class="level-tag" style="background:{levelTagBg};color:{levelTagColor};border:1px solid {levelTagBorder};padding:6px 14px;border-radius:20px;font-size:0.83rem;font-weight:600;margin-bottom:18px;">{levelTagText}</p>
+      <p class="hero-sub">A controlled experimental study comparing animation rendering performance across React, Vue.js, Svelte and Angular frameworks.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary magnetic-btn" on:mousemove={onMagneticMove} on:mouseleave={onMagneticLeave} on:click={openResearchModal}>View Research</button>
+        <button class="btn-secondary magnetic-btn" on:mousemove={onMagneticMove} on:mouseleave={onMagneticLeave} on:click={openLearnMoreModal}>Learn More</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-number elastic-stretch" class:glow-done={countDone}>{stat1}</span><span class="stat-label">Frameworks</span></div>
+        <div class="stat"><span class="stat-number elastic-stretch" class:glow-done={countDone}>{stat2}</span><span class="stat-label">Metrics</span></div>
+        <div class="stat"><span class="stat-number elastic-stretch" class:glow-done={countDone}>{stat3}+</span><span class="stat-label">Test Runs</span></div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="logo-wrapper">
+        <div class="ring ring-1" bind:this={ring1El}></div>
+        <div class="ring ring-2" bind:this={ring2El}></div>
+        <div class="ring ring-3" bind:this={ring3El}></div>
+        <div class="animated-logo" bind:this={logoEl}
+             on:mouseenter={onLogoEnter} on:mouseleave={onLogoLeave}></div>
+      </div>
+      <p class="logo-label">⚡ Animated Test Element</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand"><span class="brand-dot"></span>AnimBench</div>
+      <p>IS 8101 Research Project in Information Systems</p>
+      <p>Department of Computing &amp; Information Systems</p>
+      <p>Sabaragamuwa University of Sri Lanka</p>
+      <p class="footer-copy">&copy; 2025 S. Niluxshan &mdash; 20APC4681</p>
+    </div>
+  </footer>
+</div>
+
+<style>
+/* ─── Level 5 — Cinematic ────────────────────────────────────────────────── */
+
+/* Layout */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #0f0f1a;
+  padding: 18px 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.brand-dot {
+  width: 12px;
+  height: 12px;
+  background: #7c3aed;
+  border-radius: 50%;
+  display: inline-block;
+}
+.level-badge {
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+}
+
+/* Hero */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 80px 60px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f5f0ff 100%);
+  min-height: 92vh;
+  gap: 40px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Aurora background */
+.aurora {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  animation: auroraMove5 18s ease-in-out infinite;
+}
+.aurora span:nth-child(1) {
+  width: 460px;
+  height: 460px;
+  background: #c4b5fd;
+  top: -150px;
+  left: -110px;
+}
+.aurora span:nth-child(2) {
+  width: 380px;
+  height: 380px;
+  background: #f9a8d4;
+  top: 42%;
+  right: -130px;
+  animation-delay: -6s;
+}
+.aurora span:nth-child(3) {
+  width: 320px;
+  height: 320px;
+  background: #a5b4fc;
+  bottom: -130px;
+  left: 28%;
+  animation-delay: -11s;
+}
+@keyframes auroraMove5 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(55px, -45px) scale(1.18); }
+  66%       { transform: translate(-45px, 35px) scale(0.88); }
+}
+
+/* Hero columns */
+.hero-left {
+  flex: 1;
+  max-width: 560px;
+  position: relative;
+  z-index: 2;
+}
+.badge {
+  display: inline-block;
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+.level-tag {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+  border: 1px solid;
+  background: #fdf4ff;
+  color: #7c3aed;
+  border-color: #e9d5ff;
+}
+
+/* ─── Heading Marquee ─────────────────────────────────────────────────────── */
+/* The h1 "Animation Performance Benchmark" continuously scrolls as a marquee. */
+.heading-marquee-wrapper {
+  overflow: hidden;
+  margin-bottom: 20px;
+  /* Fade edges */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+}
+.heading-marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: headingMarquee 14s linear infinite;
+}
+/* Pause on hover */
+.heading-marquee-track:hover {
+  animation-play-state: paused;
+}
+.heading-marquee-copy {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28em;
+  padding-right: 2.5em;
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #0f0f1a;
+  white-space: nowrap;
+}
+.heading-marquee-sep {
+  color: #7c3aed;
+  opacity: 0.5;
+  font-size: 1.6rem;
+  margin: 0 0.5em;
+  vertical-align: middle;
+}
+@keyframes headingMarquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Gradient shimmer on the "Performance" word inside the marquee */
+.highlight {
+  display: inline-block;
+}
+.gradient-shimmer {
+  background: linear-gradient(90deg, #7c3aed, #ec4899, #4f46e5, #7c3aed);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerSweep 3.2s linear infinite;
+}
+@keyframes shimmerSweep {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+.hero-sub {
+  font-size: 1.1rem;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+/* Buttons */
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.btn-primary {
+  background: linear-gradient(120deg, #4f46e5, #7c3aed, #ec4899, #4f46e5);
+  background-size: 300% 300%;
+  animation: gradientMove5 6s ease infinite;
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 26px rgba(124, 58, 237, 0.4);
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: skewX(-20deg);
+  transition: left 600ms ease;
+}
+.btn-primary:hover::before { left: 130%; }
+@keyframes gradientMove5 {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+.btn-secondary {
+  background: transparent;
+  color: #7c3aed;
+  border: 2px solid #7c3aed;
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.btn-secondary::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  padding: 2px;
+  background: linear-gradient(120deg, #4f46e5, #db2777, #7c3aed);
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  animation: gradientMove5 6s ease infinite;
+}
+.btn-secondary:hover::after { opacity: 1; }
+
+/* Stats */
+.hero-stats {
+  display: flex;
+  gap: 40px;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #7c3aed;
+  display: inline-block;
+  transform-origin: center bottom;
+}
+.stat-number.glow-done {
+  text-shadow: 0 0 16px rgba(124, 58, 237, 0.55);
+}
+.stat-label {
+  font-size: 0.85rem;
+  color: #777;
+  font-weight: 500;
+}
+.elastic-stretch {
+  display: inline-block;
+  transform-origin: center bottom;
+}
+
+/* Logo */
+.hero-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  position: relative;
+  z-index: 2;
+}
+.logo-wrapper {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid #7c3aed;
+  opacity: 0.22;
+  will-change: transform;
+}
+.ring-1 { width: 280px; height: 280px; }
+.ring-2 { width: 220px; height: 220px; }
+.ring-3 { width: 160px; height: 160px; }
+.animated-logo {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(124, 58, 237, 0.5);
+  position: relative;
+  z-index: 2;
+  will-change: transform, box-shadow;
+  cursor: pointer;
+}
+.logo-wrapper::before,
+.logo-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 58, 237, 0.5);
+  animation: ripple5 3s ease-out infinite;
+}
+.logo-wrapper::after { animation-delay: 1.5s; }
+@keyframes ripple5 {
+  0%   { transform: scale(1); opacity: 0.65; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.logo-label {
+  font-size: 0.9rem;
+  color: #7c3aed;
+  font-weight: 600;
+  background: #fdf4ff;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid #e9d5ff;
+}
+
+/* Footer */
+.footer {
+  background-color: #0f0f1a;
+  color: white;
+  text-align: center;
+  padding: 48px 60px;
+}
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.footer .brand-dot { background: #7c3aed; }
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.footer p { color: #aaa; font-size: 0.88rem; }
+.footer-copy { margin-top: 16px; color: #666; font-size: 0.8rem; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(6px);
+}
+.modal-box {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  border-bottom: 2px solid #f3ecff;
+  padding-bottom: 16px;
+}
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f0f1a;
+  margin: 0;
+}
+.modal-close {
+  background: #f1f5f9;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #555;
+  transition: background 0.2s;
+}
+.modal-close:hover { background: #e2e8f0; }
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.modal-dot {
+  color: #7c3aed;
+  font-size: 1.1rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.modal-item p {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Error fallback */
+.error-fallback {
+  padding: 60px;
+  text-align: center;
+  color: #555;
+  font-size: 1rem;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .navbar { padding: 14px 24px; }
+  .hero {
+    flex-direction: column;
+    padding: 50px 24px;
+    min-height: auto;
+  }
+  .hero-left { max-width: 100%; }
+  .heading-marquee-copy { font-size: 2rem; }
+  .hero-stats { gap: 24px; }
+  .hero-buttons { flex-direction: column; gap: 12px; }
+  .footer { padding: 36px 24px; }
+}
+
+/* ─── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .heading-marquee-track {
+    animation: none;
+  }
+}
+
+</style>
